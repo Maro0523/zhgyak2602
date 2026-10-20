@@ -1,0 +1,153 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Common
+{
+    public class Person
+    {
+        public string Name { get; set; }
+        public int Age { get; set; }
+        public int Height { get; set; }
+
+        public Person(string name, int age, int hetight)
+        {
+            Name = name;
+            Age = age;
+            Height = hetight;
+        }
+
+        public static Person GetMe() {
+            return new Person("Maro", 22, 160);
+        }
+
+        public override string ToString()
+        {
+            return $"{Name}, {Age} éves, {Height} cm magas";
+        }
+    }
+}
+-------------------------------------------------------------
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Common
+{
+    public class TrivialPersonSource : IPersonSource
+    {
+        private readonly int n;
+
+        public TrivialPersonSource(int n)
+        {
+            this.n = n;
+        }
+
+        public IEnumerable<Person> GetPersons() {
+            for (int i = 0; i < n; i++) {
+                yield return Person.GetMe();
+            }
+        }
+    }
+}
+----------------------------------------------------------------
+using Common;
+using System.Linq;
+
+namespace Tests;
+
+public class TrivialPersonSourceTests
+{
+    [Fact]
+    public void TestCount()
+    {
+        var source = new TrivialPersonSource(12);
+
+        var persons = source.GetPersons();
+
+        int count = persons.Count();
+
+        Assert.Equal(12, count);
+    }
+}
+---------------------------------------------------------------
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Common
+{
+    public class AdvancedPersonSource : IPersonSource
+    {
+        private List<Person> lista = new List<Person>();
+
+        public IEnumerable<Person> GetPersons() { 
+            return lista;
+        }
+
+        public void Add(string name, int age, int height) { 
+            lista.Add(new Person(name, age, height));
+        }
+    }
+}
+--------------------------------------------------------------
+using Common;
+using System.Linq;
+namespace Tests;
+
+public class AdvancedPersonSourceTests
+{
+    [Fact]
+    public void TestAddMethod()
+    {
+        AdvancedPersonSource lista = new AdvancedPersonSource();
+
+        lista.Add("lurva", 11, 33);
+        lista.Add("durva", 31, 563);
+        lista.Add("rurva", 71, 63);
+
+        Assert.Equal(3, lista.GetPersons().Count());
+    }
+}
+----------------------------------------------------------------
+using Common;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp
+{
+    public class ConsoleApp
+    {
+        static void Main(string[] args) {
+            TrivialPersonSource en = new TrivialPersonSource(3);
+
+            AdvancedPersonSource te = new AdvancedPersonSource();
+            te.Add("lurva", 69, 133);
+            te.Add("durva", 31, 54);
+            te.Add("rurva", 50, 233);
+            te.Add("kurva", 91, 123);
+
+            
+            PrintPersons(te, en);
+        }
+
+        static void PrintPersons(IPersonSource te, IPersonSource en) { 
+            foreach (var item in te.GetPersons()){ 
+                Console.WriteLine(item);
+            }
+            foreach (var item2 in en.GetPersons())
+            {
+                Console.WriteLine(item2);
+            }
+        }
+    }
+}
