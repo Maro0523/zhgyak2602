@@ -1,1 +1,165 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+
+namespace Common
+{
+    public class Ingreadient
+    {
+        public string Name { get; set; }
+        public int Count { get; set; }
+
+        public string Unit { get; set; }
+
+        public Ingreadient(string name, int count, string unit)
+        {
+            Name = name;
+            Count = count;
+            Unit = unit;
+        }
+
+        public Ingreadient(string uj) {
+
+            var match = Regex.Match(uj.Trim(), @"(\d+)\s+(\S+)\s+(.+)$");
+
+            if (!match.Success) {
+                throw new ArgumentException("Nem jó a formátum!!!");
+            }
+
+            Count = int.Parse(match.Groups[1].Value);
+            Unit = match.Groups[2].Value;
+            Name = match.Groups[3].Value;
+        }
+
+
+
+        public static Ingreadient GetRandom() {
+            Random rnd = new Random();
+            int rndC = rnd.Next(0, 100);
+            return new Ingreadient("kurva", rndC, "anyád");
+        }
+
+        public override string ToString(){
+            return $"{Name}: {Count} {Unit}";
+        }
+    }
+}
+-------------------------------------------------------------------
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Common
+{
+    public class TrivialIngreadientSource : IIngreadientSource
+    {
+        public int N { get; set; } = 3;
+        
+        public IEnumerable<Ingreadient> GetIngreadients() {
+            for (int i = 0; i < N; i++) {
+                yield return Ingreadient.GetRandom();
+            }
+        }
+    }
+}
+--------------------------------------------------------------------
+namespace Tests;
+using Common;
+using System;
+
+
+public class TrivialIngradientSourceTests
+{
+    [Fact]
+    public void TestCount()
+    {
+        var source = new TrivialIngreadientSource()
+        {
+            N = 8
+        };
+
+        var ingreadients = source.GetIngreadients();
+        int count = ingreadients.Count();
+
+        Assert.Equal(8, count);
+    }
+}
+-------------------------------------------------------------------
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Common
+{
+    public class RecipeBook : IIngreadientSource
+    {
+        public List<Ingreadient> lista = new List<Ingreadient>();
+
+        public IEnumerable<Ingreadient> GetIngreadients() { 
+            return lista;
+        }
+
+        public void Add(string uj) {
+            lista.Add(new Ingreadient(uj));
+        }
+    }
+}
+------------------------------------------------------------------
+using Common;
+
+namespace Tests;
+
+public class Test1
+{
+    [Fact]
+    public void TestIngreadients()
+    {
+        RecipeBook book = new RecipeBook();
+
+        book.Add("69 kurva vagy");
+        book.Add("420 ribanc vagy");
+
+        Assert.Equal(2, book.GetIngreadients().Count());
+
+        Assert.Throws<ArgumentException>(() => book.Add("kurva anyád"));
+        Assert.Throws<ArgumentException>(() => book.Add("anyád 15"));
+    }
+}
+----------------------------------------------------------------------
+using Common;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp
+{
+    public class ConsoleApplication
+    {
+        static void Main(string[] args) { 
+            RecipeBook book = new RecipeBook();
+
+            book.Add("13 gramm liszt");
+            book.Add("14 kilo zab");
+            book.Add("22 db tojás");
+            book.Add("33 liter tej");
+
+            PrintIngreadients(book);
+        }
+
+        static void PrintIngreadients(IIngreadientSource uj) {
+            foreach (var item in uj.GetIngreadients()) { 
+                Console.WriteLine(item);
+            }
+        }
+    }
+}
 
