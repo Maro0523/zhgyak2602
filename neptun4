@@ -1,0 +1,114 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Common
+{
+    public interface IBoolSource
+    {
+        public IEnumerable<bool> GetBools(int N);
+    }
+}
+---------------------------------------------------------
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Common
+{
+    public class SimpleGenerator : IBoolSource
+    {
+        public bool ValueToGenerate { get; set; }
+
+        public IEnumerable<bool> GetBools(int N) {
+            for (int i = 0; i < N; i++) {
+                yield return ValueToGenerate;
+            }
+        }
+    }
+}
+----------------------------------------------------------
+using Common;
+namespace Tests;
+
+public class SimpleGeneratorTest
+{
+    [Fact]
+    public void BasicTest()
+    {
+        var generator = new SimpleGenerator() { ValueToGenerate = true};
+
+        var result = generator.GetBools(10).ToList();
+
+        Assert.Equal(10, result.Count());
+    }
+}
+--------------------------------------------------------------
+using Common;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApplication
+{
+    public class ConsoleApplication
+    {
+        static void Main(string[] args) {
+            var generator = new SimpleGenerator() { ValueToGenerate = true };
+
+            ShowBools(generator, 5);
+
+            var generator2 = new PatternGenerator();
+            ShowBools(generator2, 15);
+        }
+        static void ShowBools(IBoolSource bools, int N) { 
+            
+            int trueCount = bools.GetBools(N).Count(b => b);
+            Console.WriteLine($"True-k száma: {trueCount}");
+        }
+    }
+}
+----------------------------------------------------------------------------
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Common
+{
+    public class PatternGenerator : IBoolSource
+    {
+        public IEnumerable<bool> GetBools(int N) {
+            for (int i = 0; i < N; i++) {
+                if (i % 3 == 0) { 
+                    yield return true;
+                }
+                else { yield return false; } 
+            }
+        }
+
+    }
+}
+--------------------------------------------------------------------
+using Common;
+
+namespace Tests;
+
+public class PatternGeneratorTest
+{
+    [Fact]
+    public void BasicTest()
+    {
+        var generator = new PatternGenerator();
+        var result = generator.GetBools(5).ToList();
+        var expected = new bool[] { true, false, false, true, false };
+        Assert.Equal(expected, result);
+    }
+}
